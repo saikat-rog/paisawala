@@ -10,35 +10,46 @@ import Login from "./Auth/components/Login";
 import Register from "./Auth/components/Register";
 import ForgotPassword from "./Auth/components/ForgotPassword";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { Provider } from "react-redux";
+import store from "./store";
+import ProtectedRoute from "./ProtectedRoute";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <Layout />,
     children: [
-      { 
-        path: "", 
-        element: <Home/>
+      {
+        path: "",
+        element: <Home />,
       },
-      { 
-        path: "play", 
-        element: <Play/>
+      {
+        path: "play",
+        element: (
+          <ProtectedRoute>
+            <Play />
+          </ProtectedRoute>
+        ),
       },
-      { 
-        path: "profile", 
-        element: <Profile/>
+      {
+        path: "profile",
+        element: (
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        ),
       },
-      { 
-        path: "login", 
-        element: <Login/>
+      {
+        path: "login",
+        element: <Login />,
       },
-      { 
-        path: "register", 
-        element: <Register/>
+      {
+        path: "register",
+        element: <Register />,
       },
-      { 
-        path: "reset-password", 
-        element: <ForgotPassword/>
+      {
+        path: "reset-password",
+        element: <ForgotPassword />,
       },
     ],
   },
@@ -47,7 +58,9 @@ const router = createBrowserRouter([
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <Provider store={store}>
+      <RouterProvider router={router} />
+    </Provider>
   </React.StrictMode>
 );
 

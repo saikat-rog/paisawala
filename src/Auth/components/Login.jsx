@@ -1,14 +1,71 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline"; // Make sure you have heroicons installed
+import { handleError, handleSuccess } from "../../utils/handleStatus";
+import axios from "axios";
+import { ToastContainer } from "react-toastify";
+import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
+import { useDispatch } from 'react-redux';
+import { login } from '../../store/authSlice';
+import { useNavigate } from "react-router-dom";
+import Cookies from 'js-cookie';
 
 export default function Login() {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   // State to toggle password visibility
   const [passwordVisible, setPasswordVisible] = useState(false);
 
   // Toggle password visibility
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
+  };
+
+  // State for Login info
+  const [loginInfo, setLoginInfo] = useState({
+    phone: "",
+    password: "",
+  });
+
+  // Handle input change
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setLoginInfo({ ...loginInfo, [name]: value });
+    console.log(loginInfo);
+  };
+
+  // Handling login button
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const { phone, password } = loginInfo;
+
+    // If any field is empty show this message
+    if (!phone || !password) {
+      return handleError("All fields are required");
+    }
+    
+    // Sending req to server for Login
+    try{
+      const respone = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/auth/login`, loginInfo);
+      handleSuccess(respone.data.message);
+      const { token } = respone.data;
+      const { phone } = respone.data;
+      Cookies.set('phone', phone, { expires: 365 });
+      dispatch(login(token));
+      navigate("/play");
+    }
+    catch(e){
+      if(e.response){
+        return handleError(e.response.data.message);
+      }
+      else if(e.request){
+        return handleError("No response from server");
+      }
+      else{
+        return handleError("Internal Error:", e.message);
+      }
+    }
+
   };
 
   return (
@@ -22,7 +79,7 @@ export default function Login() {
               <br />
               Sign in to your account
             </h1>
-            <form className="space-y-4 md:space-y-6" action="#">
+            <form className="space-y-4 md:space-y-6" onSubmit={handleSubmit}>
               <div>
                 <label
                   htmlFor="phone"
@@ -31,12 +88,13 @@ export default function Login() {
                   Phone number
                 </label>
                 <input
+                value={loginInfo.phone}
+                  onChange={handleChange}
                   type="tel"
                   name="phone"
                   id="phone"
                   className="bg-gray-50 border text-black border-gray-300 rounded-lg block w-full p-2.5"
                   placeholder=" Your phone number"
-                  required
                 />
               </div>
               <div>
@@ -48,12 +106,13 @@ export default function Login() {
                 </label>
                 <div className="relative">
                   <input
+                  value={loginInfo.password}
+                  onChange={handleChange}
                     type={passwordVisible ? "text" : "password"}
                     name="password"
                     id="password"
                     placeholder="••••••••"
                     className="bg-gray-50 border text-black border-gray-300 rounded-lg block w-full p-2.5"
-                    required
                   />
                   <button
                     type="button"
@@ -95,6 +154,7 @@ export default function Login() {
           </div>
         </div>
       </div>
+      <ToastContainer/>
     </section>
   );
 }

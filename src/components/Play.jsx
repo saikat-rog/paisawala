@@ -58,6 +58,7 @@ const gameRecords = [
 ];
 
 export default function Play() {
+
   return (
     <div className=" flex flex-col">
       {/* Balance card */}

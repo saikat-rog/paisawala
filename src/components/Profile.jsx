@@ -1,4 +1,8 @@
 import React from "react";
+import { useDispatch } from "react-redux";
+import { logout } from '../store/authSlice';
+import { useNavigate } from "react-router-dom";
+import Cookies from 'js-cookie';
 import {
   CalendarIcon,
   NumberedListIcon,
@@ -14,13 +18,25 @@ import {
 } from "@heroicons/react/24/outline";
 
 export default function Profile() {
+
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const phone = Cookies.get('phone');
+
+  // onLogout
+  const onLogout = () => {
+    dispatch(logout());
+    localStorage.removeItem('token');
+    navigate("/login");
+  }
+
   return (
     <div className="min-w-screen mb-52">
       {/* User info */}
       <div className="w-full h-1/7 flex flex-col text-lg bg-indigo-500 text-white p-5 gap-5">
         {/* User Id and Phone */}
         <div className="flex flex-col gap-2">
-          <p>User: 8334066167</p>
+          <p>User: {phone}</p>
           <p>ID:254789</p>
         </div>
         {/* Balance and Interest Dashboard */}
@@ -105,7 +121,7 @@ export default function Profile() {
             <ChevronDownIcon className="w-5 h-5" />
           </li>
           <li className="flex justify-start gap-2">
-            <button className="bg-red-600 p-2 rounded-md text-white flex gap-2">
+            <button className="bg-red-600 p-2 rounded-md text-white flex gap-2" onClick={onLogout}>
               <ArrowLeftCircleIcon className="w-5 h-5" />
               Logout
             </button>

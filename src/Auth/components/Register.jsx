@@ -1,6 +1,9 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline"; // Make sure you have heroicons installed
+import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
+import { handleError, handleSuccess } from "../../utils/handleStatus";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css"; // Import toast CSS
+import axios from "axios";
 
 export default function Register() {
   // State to toggle password visibility
@@ -11,17 +14,91 @@ export default function Register() {
     setPasswordVisible(!passwordVisible);
   };
 
+  // State for Signup info
+  const [signupInfo, setSignupInfo] = useState({
+    email: "",
+    phone: "",
+    password: "",
+    confirmPassword: "",
+    referCode: "",
+  });
+
+  // Handle input change
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setSignupInfo({ ...signupInfo, [name]: value });
+  };
+
+  //Clear the form
+  const clearForm = () => {
+    setSignupInfo({
+      email: "",
+      phone: "",
+      password: "",
+      confirmPassword: "",
+      referCode: "",
+    });
+  };
+
+  // Handle the signup form submit
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const { phone, email, password, confirmPassword, referCode } = signupInfo;
+
+    // Validate all fields are filled
+    if (!phone || !email || !password || !confirmPassword || !referCode) {
+      return handleError("All fields are required");
+    }
+    // // Validate passwords match
+    else if (password !== confirmPassword) {
+      return handleError("Passwords do not match");
+    }
+    // Sending req to server for registration
+    try {
+      const signupForm = {
+        email: email,
+        phone: phone,
+        password: password,
+        referCode: referCode,
+      };
+      const response = await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/auth/register`,
+        signupForm
+      );
+      clearForm();
+      handleSuccess(response.data.message);
+      console.log(response.data);
+    } catch (error) {
+      if (error.response) {
+        // The request was made and the server responded with a status code that falls out of the range of 2xx
+        handleError(error.response.data.message);
+        handleError(error.response.data);
+        console.log(`Error: ${error.response.data.message}`);
+      } else if (error.request) {
+        // The request was made but no response was received
+        handleError("No response from server");
+        console.log("No response from server");
+      } else {
+        // Something else happened while setting up the request
+        handleError(error.message);
+        console.log(error.message);
+      }
+    }
+  };
+
   return (
     <section>
       <div className="flex flex-col items-center justify-center px-6 min-h-screen pb-20">
         <div className="w-full bg-indigo-500 rounded-lg shadow sm:max-w-md">
           <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
             <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
-              Paisawala<br/>
+              Paisawala
+              <br />
               Register a new account
             </h1>
-            <form className="space-y-4 md:space-y-6" action="#">
-                {/* Email input */}
+            <form className="space-y-4 md:space-y-6" onSubmit={handleSubmit}>
+              {/* Email input */}
               <div>
                 <label
                   htmlFor="email"
@@ -30,12 +107,13 @@ export default function Register() {
                   Your email
                 </label>
                 <input
+                value={signupInfo.email}
+                  onChange={handleChange}
                   type="email"
                   name="email"
                   id="email"
                   className="bg-gray-50 border text-black border-gray-300 rounded-lg block w-full p-2.5"
                   placeholder="name@email.com"
-                  required
                 />
               </div>
               {/* Phone num input */}
@@ -47,12 +125,13 @@ export default function Register() {
                   Phone number
                 </label>
                 <input
+                value={signupInfo.phone}
+                  onChange={handleChange}
                   type="tel"
                   name="phone"
                   id="phone"
                   className="bg-gray-50 border text-black border-gray-300 rounded-lg block w-full p-2.5"
                   placeholder=" Your phone number"
-                  required
                 />
               </div>
               {/* password input */}
@@ -65,12 +144,13 @@ export default function Register() {
                 </label>
                 <div className="relative">
                   <input
+                  value={signupInfo.password}
+                    onChange={handleChange}
                     type={passwordVisible ? "text" : "password"}
                     name="password"
                     id="password"
                     placeholder="••••••••"
                     className="bg-gray-50 border text-black border-gray-300 rounded-lg block w-full p-2.5"
-                    required
                   />
                   <button
                     type="button"
@@ -95,12 +175,13 @@ export default function Register() {
                 </label>
                 <div className="relative">
                   <input
+                  value={signupInfo.confirmPassword}
+                    onChange={handleChange}
                     type={passwordVisible ? "text" : "password"}
-                    name="password"
-                    id="password"
+                    name="confirmPassword"
+                    id="confirmPassword"
                     placeholder="••••••••"
                     className="bg-gray-50 border text-black border-gray-300 rounded-lg block w-full p-2.5"
-                    required
                   />
                   <button
                     type="button"
@@ -124,12 +205,13 @@ export default function Register() {
                   Refer code
                 </label>
                 <input
+                value={signupInfo.referCode}
+                  onChange={handleChange}
                   type="tel"
-                  name="phone"
-                  id="phone"
+                  name="referCode"
+                  id="referCode"
                   className="bg-gray-50 border text-black border-gray-300 rounded-lg block w-full p-2.5"
                   placeholder=" Refer code required"
-                  required
                 />
               </div>
               {/* Submit Button */}
@@ -143,6 +225,7 @@ export default function Register() {
           </div>
         </div>
       </div>
+      <ToastContainer />
     </section>
   );
 }
